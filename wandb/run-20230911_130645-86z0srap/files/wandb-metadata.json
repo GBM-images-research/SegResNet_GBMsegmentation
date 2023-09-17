@@ -1,0 +1,44 @@
+{
+    "os": "Windows-10-10.0.22621-SP0",
+    "python": "3.11.4",
+    "heartbeatAt": "2023-09-11T16:06:51.726492",
+    "startedAt": "2023-09-11T16:06:45.754829",
+    "docker": null,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "<python with no main file>",
+    "codePathLocal": null,
+    "git": {
+        "remote": "https://github.com/amulet1989/SegResNet_GBMsegmentation",
+        "commit": "b3a6f1731fc42feec5abc704ac7e95e890e2a15a"
+    },
+    "email": "muletdelosreyes89@gmail.com",
+    "root": "D:/Alexander/1_Doctorado/Software/Unsup_seg_GBM",
+    "host": "LAPTOP-BGS8P62E",
+    "username": "Cecilia",
+    "executable": "c:\\Users\\Cecilia\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\unsup-seg-gbm-nLgqUjZ0-py3.11\\Scripts\\python.exe",
+    "cpu_count": 8,
+    "cpu_count_logical": 8,
+    "cpu_freq": {
+        "current": 2000.0,
+        "min": 0.0,
+        "max": 2000.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 2000.0,
+            "min": 0.0,
+            "max": 2000.0
+        }
+    ],
+    "disk": {
+        "/": {
+            "total": 231.35058212280273,
+            "used": 195.4474754333496
+        }
+    },
+    "memory": {
+        "total": 15.36447525024414
+    }
+}

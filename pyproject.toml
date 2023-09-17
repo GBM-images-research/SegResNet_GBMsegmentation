@@ -17,6 +17,7 @@ torchio = "^0.18.92"
 matplotlib = "^3.7.1"
 nilearn = "^0.10.1"
 monai = "^1.2.0"
+wandb = "^0.15.10"
 
 
 
