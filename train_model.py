@@ -284,6 +284,7 @@ def main():
 
     total_start = time.time()
     for epoch in range(max_epochs):
+        torch.cuda.empty_cache()
         epoch_start = time.time()
         logging.info("-" * 10)
         logging.info(f"epoch {epoch + 1}/{max_epochs}")
@@ -403,6 +404,7 @@ def main():
                         model.state_dict(),
                         best_model_file,
                     )
+                    torch.cuda.empty_cache()
                     logging.info("saved new best metric model")
 
                     # wandb save model
