@@ -3,3 +3,5 @@ nibabel==5.1.0
 wandb==1.15.0
 medpy==0.4.0
 nilearn==0.10.1
+tqdm==4.65.0 
+matplotlib==3.7.1
