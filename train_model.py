@@ -327,6 +327,7 @@ def main():
                     "epoch": epoch,
                 }
             )
+            torch.cuda.empty_cache()
         lr_scheduler.step()
         epoch_loss /= step
         epoch_loss_values.append(epoch_loss)
