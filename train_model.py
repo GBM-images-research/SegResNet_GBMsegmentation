@@ -223,7 +223,9 @@ def main():
             return _compute(input)
 
     # create a wandb run
-    run = wandb.init(project="SegResNet_BraTS_", job_type="train", config=config_train)
+    run = wandb.init(
+        project="SegResNet_Cerebrum", job_type="train", config=config_train
+    )
 
     # we pass the config back from W&B
     config_train = wandb.config
