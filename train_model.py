@@ -347,6 +347,7 @@ def main():
                     val_outputs = [post_trans(i) for i in decollate_batch(val_outputs)]
                     dice_metric(y_pred=val_outputs, y=val_labels)
                     dice_metric_batch(y_pred=val_outputs, y=val_labels)
+                    torch.cuda.empty_cache()
 
                 metric = dice_metric.aggregate().item()
                 metric_values.append(metric)
