@@ -242,8 +242,8 @@ def main():
         dropout_prob=config_train.dropout_prob,
     )
 
-    if torch.cuda.is_available() and torch.cuda.device_count() >= 2:
-        model = nn.DataParallel(model)
+    # if torch.cuda.is_available() and torch.cuda.device_count() >= 2:
+    # model = nn.DataParallel(model)
 
     model.to(device)
 
