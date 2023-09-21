@@ -335,6 +335,11 @@ def main():
         epoch_loss /= step
         epoch_loss_values.append(epoch_loss)
         logging.info(f"epoch {epoch + 1} average loss: {epoch_loss:.4f}")
+        wandb.log(
+            {
+                "Epoch_Average_Loss": epoch_loss,
+            }
+        )
 
         if epoch_loss < best_metric:
             best_metric = epoch_loss
