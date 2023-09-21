@@ -201,11 +201,11 @@ def main():
     )
 
     # define inference method
-    def inference(input, model):
-        if config_train.use_autocast:
-            VAL_AMP = True
-        else:
-            VAL_AMP = False
+    def inference(input, model, VAL_AMP=config_train.use_autocast):
+        # if config_train.use_autocast:
+        #    VAL_AMP = True
+        # else:
+        #    VAL_AMP = False
 
         def _compute(input):
             return sliding_window_inference(
@@ -341,8 +341,8 @@ def main():
             with torch.no_grad():
                 for val_data in val_loader:
                     val_inputs, val_labels = (
-                        val_data["image"].to(device),
-                        val_data["label"].to(device),
+                        val_data["image"].to("cpu"),
+                        val_data["label"].to("cpu"),
                     )
                     val_outputs = inference(val_inputs, model)
                     val_outputs = [post_trans(i) for i in decollate_batch(val_outputs)]
