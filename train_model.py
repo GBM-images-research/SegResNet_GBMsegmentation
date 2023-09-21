@@ -272,7 +272,7 @@ def main():
     torch.backends.cudnn.benchmark = True
 
     logging.info("Training Model")
-    best_metric = -1
+    best_metric = 1
     best_metric_epoch = -1
     best_metrics_epochs_and_time = [[], [], []]
     epoch_loss_values = []
@@ -336,98 +336,28 @@ def main():
         epoch_loss_values.append(epoch_loss)
         logging.info(f"epoch {epoch + 1} average loss: {epoch_loss:.4f}")
 
-        if (epoch + 1) % val_interval == 0:
-            model.eval()
-            with torch.no_grad():
-                for val_data in val_loader:
-                    val_inputs, val_labels = (
-                        val_data["image"].to("cpu"),
-                        val_data["label"].to("cpu"),
-                    )
-                    val_outputs = inference(val_inputs, model, False)
-                    val_outputs = [post_trans(i) for i in decollate_batch(val_outputs)]
-                    dice_metric(y_pred=val_outputs, y=val_labels)
-                    dice_metric_batch(y_pred=val_outputs, y=val_labels)
-                    torch.cuda.empty_cache()
+        if epoch_loss < best_metric:
+            best_metric = epoch_loss
+            best_metric_epoch = epoch + 1
 
-                metric = dice_metric.aggregate().item()
-                metric_values.append(metric)
-                metric_batch = dice_metric_batch.aggregate()
-                metric_tc = metric_batch[0].item()
-                metric_values_tc.append(metric_tc)
-                metric_wt = metric_batch[1].item()
-                metric_values_wt.append(metric_wt)
-                metric_et = metric_batch[2].item()
-                metric_values_et.append(metric_et)
-                dice_metric.reset()
-                dice_metric_batch.reset()
+            best_model_file = os.path.join(SAVE_DIR, "best_metric_model.pth")
 
-                # Create metrics backup
-                saved_metrics = {
-                    "Epoch_Average_Loss": epoch_loss,
-                    "lr": optimizer.param_groups[0]["lr"],
-                    "last_epoch": epoch,
-                    "best_metric": best_metric,
-                    "best_metric_epoch": best_metric_epoch,
-                    "best_metrics_epochs_and_time": best_metrics_epochs_and_time,
-                    "epoch_loss_values": epoch_loss_values,
-                    "metric_values": metric_values,
-                    "metric_values_tc": metric_values_tc,
-                    "metric_values_wt": metric_values_wt,
-                    "metric_values_et": metric_values_et,
-                }
-                # wandb
-                wandb.log(
-                    {
-                        "Epoch_Average_Loss": epoch_loss,
-                        "metric_mean": metric,
-                        "metric_mean_Necro": metric_tc,
-                        "metric_mean_Edema": metric_wt,
-                        "metric_mena_Active": metric_et,
-                    }
-                )
+            torch.save(
+                model.state_dict(),
+                best_model_file,
+            )
+            torch.cuda.empty_cache()
+            logging.info("saved new best metric model")
 
-                saved_metrics_path = os.path.join(config.WEIGHTS, "saved_metrics.pkl")
-                with open(saved_metrics_path, "wb") as f:
-                    pickle.dump(saved_metrics, f)
-
-                if metric > best_metric:
-                    best_metric = metric
-                    best_metric_epoch = epoch + 1
-                    best_metrics_epochs_and_time[0].append(best_metric)
-                    best_metrics_epochs_and_time[1].append(best_metric_epoch)
-                    best_metrics_epochs_and_time[2].append(time.time() - total_start)
-
-                    best_model_file = os.path.join(SAVE_DIR, "best_metric_model.pth")
-
-                    torch.save(
-                        model.state_dict(),
-                        best_model_file,
-                    )
-                    torch.cuda.empty_cache()
-                    logging.info("saved new best metric model")
-
-                    # wandb save model
-                    artifact_name = f"{wandb.run.id}_best_model"
-                    at = wandb.Artifact(artifact_name, type="model")
-                    at.add_file(best_model_file)
-                    wandb.log_artifact(at, aliases=[f"epoch_{epoch}"])
-
-                    # save metrics
-                    artifact_name = f"{wandb.run.id}_metrics"
-                    at = wandb.Artifact(artifact_name, type="metrics")
-                    at.add_file(saved_metrics_path)
-                    wandb.log_artifact(at, aliases=[f"epoch_{epoch}"])
-
-                logging.info(
-                    f"current epoch: {epoch + 1} current mean dice: {metric:.4f}"
-                    f" Necro: {metric_tc:.4f} Edema: {metric_wt:.4f} Active: {metric_et:.4f}"
-                    f"\nbest mean dice: {best_metric:.4f}"
-                    f" at epoch: {best_metric_epoch}"
-                )
         logging.info(
             f"time consuming of epoch {epoch + 1} is: {(time.time() - epoch_start):.4f}"
         )
+    # wandb save model
+    artifact_name = f"{wandb.run.id}_best_model"
+    at = wandb.Artifact(artifact_name, type="model")
+    at.add_file(best_model_file)
+    wandb.log_artifact(at, aliases=[f"epoch_{epoch}"])
+
     total_time = time.time() - total_start
     logging.info(f"Total time: {total_time}")
 
