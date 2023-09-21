@@ -344,7 +344,7 @@ def main():
                         val_data["image"].to("cpu"),
                         val_data["label"].to("cpu"),
                     )
-                    val_outputs = inference(val_inputs, model)
+                    val_outputs = inference(val_inputs, model, False)
                     val_outputs = [post_trans(i) for i in decollate_batch(val_outputs)]
                     dice_metric(y_pred=val_outputs, y=val_labels)
                     dice_metric_batch(y_pred=val_outputs, y=val_labels)
