@@ -258,9 +258,7 @@ def main():
     # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
     #    optimizer, T_max=config_train.max_epochs
     # )
-    lr_scheduler = torch.optim.lr_scheduler.StepLR(
-        optimizer, step_size=1, gamma=0.000001
-    )
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.5)
 
     dice_metric = DiceMetric(include_background=True, reduction="mean")
     dice_metric_batch = DiceMetric(include_background=True, reduction="mean_batch")
