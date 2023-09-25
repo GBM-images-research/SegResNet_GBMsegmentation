@@ -255,8 +255,11 @@ def main():
     optimizer = torch.optim.Adam(
         model.parameters(), config_train.lrate, weight_decay=config_train.weight_decay
     )
-    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, T_max=config_train.max_epochs
+    # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+    #    optimizer, T_max=config_train.max_epochs
+    # )
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer, step_size=1, gamma=0.000001
     )
 
     dice_metric = DiceMetric(include_background=True, reduction="mean")
