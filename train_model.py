@@ -169,7 +169,7 @@ def main():
     val_loader = DataLoader(val_ds, batch_size=1, shuffle=False, num_workers=4)
 
     # Select device gpu or cpu
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     print("Device:", device)
 
     # Cargar la clave API desde una variable de entorno
