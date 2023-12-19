@@ -5,6 +5,7 @@ from typing import List, Dict
 import os
 from monai.data import Dataset, DataLoader
 from monai.transforms import LoadImaged, Compose
+import json
 
 from monai.transforms import (
     Compose,
@@ -151,17 +152,21 @@ class CustomDataset(Dataset):
         label = self.label_files[index]
 
         if self.transform is not None:
-            apply_transform(self.transform, image)
-            apply_transform(self.transform, label)
+            data = apply_transform(
+                self.transform,
+                data={"image": image, "label": label},
+            )
+            # label = apply_transform(self.transform, label)
 
-        return image, label
+        return data["image"], data["label"]
 
     def __getitem__(self, index):
-        image_path = self.image_files[index]
-        label_path = self.label_files[index]
-        image, label = self._load_data(image_path, label_path)
+        # image_path = self.image_files[index]
+        # label_path = self.label_files[index]
+        # image, label = self._load_data(image_path, label_path)
         if self.transform:
             image, label = self._transform(index)
+            # print(image.shape, label.shape)
         return {"image": image, "label": label}
 
     def _load_files(self):
@@ -171,17 +176,22 @@ class CustomDataset(Dataset):
         modalities = ["images_DSC", "images_DTI", "images_structural"]
 
         for modality in modalities:
+            modality_files = []
             modality_path = os.path.join(section_path, "images", modality)
 
-            for case_folder in os.listdir(modality_path):
+            for n, case_folder in enumerate(os.listdir(modality_path)):
                 case_path = os.path.join(modality_path, case_folder)
 
                 # Obtener los archivos de imágenes para cada caso y modalidad
-                case_files = [
-                    os.path.join(case_path, file)
-                    for file in os.listdir(case_path)
-                    if file.endswith(".nii.gz")
-                ]
+                case_files = {
+                    n: [
+                        os.path.join(case_path, file)
+                        for file in os.listdir(case_path)
+                        if file.endswith(".nii.gz")
+                    ]
+                }
+
+                modality_files.append(case_files)
 
                 # Obtener el archivo de etiqueta correspondiente
                 label_file = os.path.join(
@@ -192,19 +202,19 @@ class CustomDataset(Dataset):
 
                 # Verificar si el caso ya ha sido procesado
                 if label_file not in label_files:
-                    image_files.append(case_files)
                     label_files.append(label_file)
 
-        print(f"Found {len(image_files)} images and {len(label_files)} labels.")
-        print(f"Image files: {image_files}")
-        print(f"Label files: {label_files}")
-        return image_files, label_files
+            image_files.append(modality_files)
 
-    def _load_data(self, image_path, label_path):
-        # Implement your own data loading logic here.
-        loader = LoadImaged(
-            keys=["image", "label"],
-            ensure_channel_first=True,
-        )
-        data = loader({"image": image_path, "label": label_path})
-        return data["image"], data["label"]
+        # Lista de listas resultante
+
+        converted_list = [[] for _ in range(len(image_files[0]))]
+
+        for l in image_files:
+            for key, values in enumerate(l):
+                converted_list[key] += values[key]
+
+        print(f"Found {len(converted_list)} images and {len(label_files)} labels.")
+        # print(f"Image files: {converted_list}")
+        # print(f"Label files: {label_files}")
+        return converted_list, label_files
