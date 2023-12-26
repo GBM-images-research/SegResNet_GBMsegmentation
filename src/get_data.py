@@ -165,7 +165,7 @@ class CustomDataset(Dataset):
         # label_path = self.label_files[index]
         # image, label = self._load_data(image_path, label_path)
         if self.transform:
-            image, label = self._transform(index)
+            image, label = self._transform(index=index)
             # print(image.shape, label.shape)
         return {"image": image, "label": label}
 
@@ -197,8 +197,9 @@ class CustomDataset(Dataset):
                 label_file = os.path.join(
                     section_path,
                     "labels",
-                    f"{case_folder}_automated_approx_segm.nii.gz",
+                    f"{case_folder}_segm.nii.gz",
                 )
+                # _automated_approx_segm / _segm
 
                 # Verificar si el caso ya ha sido procesado
                 if label_file not in label_files:
