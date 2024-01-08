@@ -200,15 +200,15 @@ config_train = SimpleNamespace(
     init_filters=16,
     dropout_prob=0.2,
     # training hyperparameters
-    max_epochs=2,
+    max_epochs=100,
     lrate=1e-4,
     weight_decay=1e-5,
     batch_size=1,
     # Post
     threshold=0.5,
     # Train type
-    use_scaler=False,
-    use_autocast=False,
+    use_scaler=True,
+    use_autocast=True,
     GT="edema + nroi + froi",
 )
 
