@@ -1,6 +1,6 @@
 monai==1.2.0 
 nibabel==5.1.0
-wandb==1.15.0
+wandb==0.15.10
 medpy==0.4.0
 nilearn==0.10.1
 tqdm==4.65.0 
