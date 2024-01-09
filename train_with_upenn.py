@@ -209,7 +209,7 @@ config_train = SimpleNamespace(
     # Train type
     use_scaler=True,
     use_autocast=True,
-    GT="edema + nroi + froi",
+    GT="nroi + froi",
 )
 
 
