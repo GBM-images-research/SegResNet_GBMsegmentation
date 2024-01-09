@@ -106,11 +106,10 @@ class ConvertToMultiChannel_with_infiltration(MapTransform):
 
             # label 2 is Edema
             edema = d[key] == 2
-            # result.append(edema)
 
             # merge labels 3, 4 and 3 to construct activo
             active = torch.logical_or(d[key] == 3, d[key] == 4)
-            # result.append(active)
+            result.append(active)
 
             # Determinar las ROI cercana y lejana al Tumor Core
             tumor_core_mask = np.logical_or(necro, active)
@@ -140,6 +139,7 @@ class ConvertToMultiChannel_with_infiltration(MapTransform):
                 voxel_size=voxel_size_cm,
             )
             result.append(F_roi)
+            result.append(edema)
 
             d[key] = torch.stack(result, axis=0).float()
         return d
@@ -320,7 +320,7 @@ def main(config_train):
     metric_values = []
     metric_values_nroi = []  # tc nroi
     metric_values_froi = []  # wt
-    # metric_values_et = []
+    metric_values_et = []
 
     total_start = time.time()
     for epoch in range(max_epochs):
@@ -401,12 +401,13 @@ def main(config_train):
                 metric_values_nroi.append(metric_nroi)
                 metric_froi = metric_batch[1].item()
                 metric_values_froi.append(metric_froi)
-                # metric_et = metric_batch[2].item()
-                # metric_values_et.append(metric_et)
+                metric_et = metric_batch[2].item()
+                metric_values_et.append(metric_et)
                 wandb.log(
                     {
-                        "Nroi_Loss": metric_nroi,
-                        "Froi_Loss": metric_froi,
+                        "Nroi_dice": metric_nroi,
+                        "Froi_dice": metric_froi,
+                        "Edema_dice": metric_et,
                     }
                 )
                 dice_metric.reset()
@@ -425,7 +426,7 @@ def main(config_train):
                     print("saved new best metric model")
                 print(
                     f"current epoch: {epoch + 1} current mean dice: {metric:.4f}"
-                    f" Necro: {metric_nroi:.4f} Edema: {metric_froi:.4f}"  # TA: {metric_et:.4f}"
+                    f" Nroi: {metric_nroi:.4f} Froi: {metric_froi:.4f}  Edema: {metric_et:.4f}"
                     f"\n best mean dice: {best_metric:.4f}"
                     f" at epoch: {best_metric_epoch}"
                 )
