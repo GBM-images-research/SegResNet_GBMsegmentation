@@ -209,7 +209,7 @@ config_train = SimpleNamespace(
     # Train type
     use_scaler=True,
     use_autocast=True,
-    GT="nroi + froi",
+    GT="nroi + froi + edema",
 )
 
 
@@ -278,7 +278,7 @@ def main(config_train):
         blocks_up=[1, 1, 1],
         init_filters=16,
         in_channels=11,
-        out_channels=2,
+        out_channels=3,
         dropout_prob=config_train.dropout_prob,
     )
 
