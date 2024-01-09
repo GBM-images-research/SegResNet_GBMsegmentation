@@ -106,10 +106,11 @@ class ConvertToMultiChannel_with_infiltration(MapTransform):
 
             # label 2 is Edema
             edema = d[key] == 2
+            # result.append(edema)
 
             # merge labels 3, 4 and 3 to construct activo
             active = torch.logical_or(d[key] == 3, d[key] == 4)
-            result.append(active)
+            # result.append(active)
 
             # Determinar las ROI cercana y lejana al Tumor Core
             tumor_core_mask = np.logical_or(necro, active)
