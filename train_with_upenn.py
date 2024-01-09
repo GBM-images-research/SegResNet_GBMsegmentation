@@ -318,9 +318,9 @@ def main(config_train):
     best_metrics_epochs_and_time = [[], [], []]
     epoch_loss_values = []
     metric_values = []
-    metric_values_tc = []
-    metric_values_wt = []
-    metric_values_et = []
+    metric_values_nroi = []  # tc nroi
+    metric_values_froi = []  # wt
+    # metric_values_et = []
 
     total_start = time.time()
     for epoch in range(max_epochs):
@@ -397,12 +397,18 @@ def main(config_train):
                 metric = dice_metric.aggregate().item()
                 metric_values.append(metric)
                 metric_batch = dice_metric_batch.aggregate()
-                metric_tc = metric_batch[0].item()
-                metric_values_tc.append(metric_tc)
-                metric_wt = metric_batch[1].item()
-                metric_values_wt.append(metric_wt)
-                metric_et = metric_batch[2].item()
-                metric_values_et.append(metric_et)
+                metric_nroi = metric_batch[0].item()
+                metric_values_nroi.append(metric_nroi)
+                metric_froi = metric_batch[1].item()
+                metric_values_froi.append(metric_froi)
+                # metric_et = metric_batch[2].item()
+                # metric_values_et.append(metric_et)
+                wandb.log(
+                    {
+                        "Nroi_Loss": metric_nroi,
+                        "Froi_Loss": metric_froi,
+                    }
+                )
                 dice_metric.reset()
                 dice_metric_batch.reset()
 
@@ -419,8 +425,8 @@ def main(config_train):
                     print("saved new best metric model")
                 print(
                     f"current epoch: {epoch + 1} current mean dice: {metric:.4f}"
-                    f" Necro: {metric_tc:.4f} Edema: {metric_wt:.4f} TA: {metric_et:.4f}"
-                    f"\nbest mean dice: {best_metric:.4f}"
+                    f" Necro: {metric_nroi:.4f} Edema: {metric_froi:.4f}"  # TA: {metric_et:.4f}"
+                    f"\n best mean dice: {best_metric:.4f}"
                     f" at epoch: {best_metric_epoch}"
                 )
         print(
