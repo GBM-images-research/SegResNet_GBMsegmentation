@@ -253,9 +253,9 @@ def main(config_train):
     )  # t_transform
     train_loader = DataLoader(train_set, batch_size=1, shuffle=False, num_workers=0)
 
-    # im_t = train_set[0]
+    im_t = train_set[0]
     # (im_t["image"].shape)
-    # print(im_t["label"].shape)
+    print(im_t["label"].shape)
 
     val_set = CustomDataset(
         dataset_path, section="valid", transform=v_transform
