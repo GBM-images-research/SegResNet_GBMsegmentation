@@ -278,7 +278,7 @@ def main(config_train):
         blocks_up=[1, 1, 1],
         init_filters=16,
         in_channels=11,
-        out_channels=3,
+        out_channels=2,
         dropout_prob=config_train.dropout_prob,
     )
 
