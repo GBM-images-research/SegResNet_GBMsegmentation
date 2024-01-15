@@ -140,7 +140,7 @@ class ConvertToMultiChannel_with_infiltration(MapTransform):
                 voxel_size=voxel_size_cm,
             )
             result.append(F_roi)
-            result.append(edema)
+            # result.append(edema)
 
             d[key] = torch.stack(result, axis=0).float()
         return d
@@ -187,7 +187,7 @@ v_transform = Compose(
 
 
 # Creando el modelo
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # DATA_DIR = Path('./data/')
 SAVE_DIR = "./Dataset"
 # SAVE_DIR.mkdir(exist_ok=True, parents=True)
@@ -210,7 +210,7 @@ config_train = SimpleNamespace(
     # Train type
     use_scaler=True,
     use_autocast=True,
-    GT="nroi + froi + edema",
+    GT="nroi + froi",
 )
 
 
@@ -279,7 +279,7 @@ def main(config_train):
         blocks_up=[1, 1, 1],
         init_filters=16,
         in_channels=11,
-        out_channels=3,
+        out_channels=2,
         dropout_prob=config_train.dropout_prob,
     )
 
@@ -402,13 +402,13 @@ def main(config_train):
                 metric_values_nroi.append(metric_nroi)
                 metric_froi = metric_batch[1].item()
                 metric_values_froi.append(metric_froi)
-                metric_et = metric_batch[2].item()
-                metric_values_et.append(metric_et)
+                # metric_et = metric_batch[2].item()
+                # metric_values_et.append(metric_et)
                 wandb.log(
                     {
                         "Nroi_dice": metric_nroi,
                         "Froi_dice": metric_froi,
-                        "Edema_dice": metric_et,
+                        # "Edema_dice": metric_et,
                     }
                 )
                 dice_metric.reset()
@@ -427,7 +427,7 @@ def main(config_train):
                     print("saved new best metric model")
                 print(
                     f"current epoch: {epoch + 1} current mean dice: {metric:.4f}"
-                    f" Nroi: {metric_nroi:.4f} Froi: {metric_froi:.4f}  Edema: {metric_et:.4f}"
+                    f" Nroi: {metric_nroi:.4f} Froi: {metric_froi:.4f}"  # Edema: {metric_et:.4f}"
                     f"\n best mean dice: {best_metric:.4f}"
                     f" at epoch: {best_metric_epoch}"
                 )
