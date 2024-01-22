@@ -8,21 +8,21 @@ from monai.data import DataLoader, decollate_batch
 # from monai.metrics import DiceMetric
 from monai.networks.nets import SegResNet
 
-# from monai.transforms import (
-#     Activations,
-#     AsDiscrete,
-#     Compose,
-#     LoadImaged,
-#     MapTransform,
-#     NormalizeIntensityd,
-#     Orientationd,
-#     RandSpatialCropd,
-#     CropForegroundd,
-#     Spacingd,
-#     EnsureTyped,
-#     EnsureChannelFirstd,
-#     CropForegroundd,
-# )
+from monai.transforms import (
+    #     Activations,
+    #     AsDiscrete,
+    #     Compose,
+    #     LoadImaged,
+    MapTransform,
+    #     NormalizeIntensityd,
+    #     Orientationd,
+    #     RandSpatialCropd,
+    #     CropForegroundd,
+    #     Spacingd,
+    #     EnsureTyped,
+    #     EnsureChannelFirstd,
+    #     CropForegroundd,
+)
 
 import torch
 import torch.nn.parallel
