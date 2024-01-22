@@ -214,11 +214,11 @@ DEVICE = device
 #################################
 config_train = SimpleNamespace(
     roi=(128, 128, 128),
-    batch_size=2,
+    batch_size=1,
     sw_batch_size=4,
     fold=1,
     infer_overlap=0.5,
-    max_epochs=100,
+    max_epochs=20,
     val_every=10,
     GT="nroi + froi + edema",
 )
@@ -227,18 +227,18 @@ config_train = SimpleNamespace(
 ### Inicializar WandB
 #############################
 # Cargar la clave API desde una variable de entorno
-logging.info("Logging in WandB")
-api_key = os.environ.get("WANDB_API_KEY")
-# Iniciar sesión en W&B
-wandb.login(key=api_key)
+# logging.info("Logging in WandB")
+# api_key = os.environ.get("WANDB_API_KEY")
+# # Iniciar sesión en W&B
+# wandb.login(key=api_key)
 
-# create a wandb run
-run = wandb.init(project="Swin_UPENN", job_type="train", config=config_train)
+# # create a wandb run
+# run = wandb.init(project="Swin_UPENN", job_type="train", config=config_train)
 
-# we pass the config back from W&B
-config_train = wandb.config
+# # we pass the config back from W&B
+# config_train = wandb.config
 
-directory = "Dataset"
+directory = "./Dataset"
 root_dir = tempfile.mkdtemp() if directory is None else directory
 print(root_dir)
 
@@ -435,13 +435,13 @@ def val_epoch(
                 ", time {:.2f}s".format(time.time() - start_time),
             )
             # wandb
-            wandb.log(
-                {
-                    "dice_nroi": dice_tc,
-                    "dice_froi": dice_wt,
-                    "dice_edema": dice_et,
-                }
-            )
+            # wandb.log(
+            #     {
+            #         "dice_nroi": dice_tc,
+            #         "dice_froi": dice_wt,
+            #         "dice_edema": dice_et,
+            #     }
+            # )
             start_time = time.time()
 
     return run_acc.avg
@@ -484,13 +484,13 @@ def trainer(
             "time {:.2f}s".format(time.time() - epoch_time),
         )
         # wandb
-        wandb.log(
-            {
-                "loss": "{:.4f}".format(train_loss),
-                "lr": optimizer.param_groups[0]["lr"],
-                "epoch": epoch,
-            }
-        )
+        # wandb.log(
+        #     {
+        #         "loss": "{:.4f}".format(train_loss),
+        #         "lr": optimizer.param_groups[0]["lr"],
+        #         "epoch": epoch,
+        #     }
+        # )
 
         if (epoch + 1) % val_every == 0 or epoch == 0:
             loss_epochs.append(train_loss)
@@ -546,13 +546,6 @@ def trainer(
     )
 
 
-# Cargar la clave API desde una variable de entorno
-logging.info("Logging in WandB")
-api_key = os.environ.get("WANDB_API_KEY")
-# Iniciar sesión en W&B
-wandb.login(key=api_key)
-
-
 ####################################
 # Load DATASET and training modelo #
 ####################################
@@ -574,6 +567,10 @@ def main(config_train):
         dataset_path, section="valid", transform=val_transform
     )  # v_transform
     val_loader = DataLoader(val_set, batch_size=1, shuffle=False, num_workers=0)
+
+    im_v = val_set[0]
+    # (im_t["image"].shape)
+    print(im_v["label"].shape)
 
     # im_v = val_set[0]
     # print(im_v["image"].shape)
