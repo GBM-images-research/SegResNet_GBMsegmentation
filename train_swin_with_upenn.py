@@ -486,6 +486,7 @@ def trainer(
             "time {:.2f}s".format(time.time() - epoch_time),
         )
         # wandb
+        print("train_loss", train_loss, type(train_loss))
         wandb.log(
             {
                 "loss": train_loss,
