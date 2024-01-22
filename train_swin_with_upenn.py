@@ -212,16 +212,6 @@ DEVICE = device
 #################################
 # HIPER PARAMETER CONFIGURATION #
 #################################
-config_train = SimpleNamespace(
-    roi=(128, 128, 128),
-    batch_size=1,
-    sw_batch_size=4,
-    fold=1,
-    infer_overlap=0.5,
-    max_epochs=20,
-    val_every=10,
-    GT="nroi + froi + edema",
-)
 
 ### Hyperparameter
 roi = (128, 128, 64)  # (128, 128, 128)
@@ -229,24 +219,36 @@ batch_size = 1
 sw_batch_size = 2
 fold = 1
 infer_overlap = 0.5
-max_epochs = 10
-val_every = 10
+max_epochs = 100
+val_every = 1
 # train_loader, val_loader = get_loader(batch_size, data_dir, json_list, fold, roi)
+
+config_train = SimpleNamespace(
+    roi=roi,
+    batch_size=batch_size,
+    sw_batch_size=sw_batch_size,
+    fold=fold,
+    infer_overlap=infer_overlap,
+    max_epochs=max_epochs,
+    val_every=val_every,
+    GT="nroi + froi + edema",
+)
 
 #############################
 ### Inicializar WandB
 #############################
 # Cargar la clave API desde una variable de entorno
-# logging.info("Logging in WandB")
-# api_key = os.environ.get("WANDB_API_KEY")
-# # Iniciar sesión en W&B
-# wandb.login(key=api_key)
+logging.info("Logging in WandB")
+api_key = os.environ.get("WANDB_API_KEY")
+# Iniciar sesión en W&B
+wandb.login(key=api_key)
 
-# # create a wandb run
-# run = wandb.init(project="Swin_UPENN", job_type="train", config=config_train)
+# create a wandb run
+run = wandb.init(project="Swin_UPENN", job_type="train", config=config_train)
 
-# # we pass the config back from W&B
-# config_train = wandb.config
+# we pass the config back from W&B
+config_train = wandb.config
+
 
 directory = "./Dataset"
 root_dir = tempfile.mkdtemp() if directory is None else directory
@@ -338,7 +340,7 @@ val_transform = transforms.Compose(
 
 # Create Swin transformer
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
 model = SwinUNETR(
     img_size=roi,
@@ -434,15 +436,15 @@ def val_epoch(
                 dice_et,
                 ", time {:.2f}s".format(time.time() - start_time),
             )
-            # wandb
+            # # wandb
             # wandb.log(
             #     {
-            #         "dice_nroi": dice_tc,
-            #         "dice_froi": dice_wt,
-            #         "dice_edema": dice_et,
+            #         "val_dice_nroi": dice_tc,
+            #         "val_dice_froi": dice_wt,
+            #         "val_dice_edema": dice_et,
             #     }
             # )
-            start_time = time.time()
+            # start_time = time.time()
 
     return run_acc.avg
 
@@ -484,13 +486,13 @@ def trainer(
             "time {:.2f}s".format(time.time() - epoch_time),
         )
         # wandb
-        # wandb.log(
-        #     {
-        #         "loss": "{:.4f}".format(train_loss),
-        #         "lr": optimizer.param_groups[0]["lr"],
-        #         "epoch": epoch,
-        #     }
-        # )
+        wandb.log(
+            {
+                "loss": "{:.4f}".format(train_loss),
+                "lr": optimizer.param_groups[0]["lr"],
+                "epoch": epoch,
+            }
+        )
 
         if (epoch + 1) % val_every == 0 or epoch == 0:
             loss_epochs.append(train_loss)
@@ -521,6 +523,16 @@ def trainer(
                 val_avg_acc,
                 ", time {:.2f}s".format(time.time() - epoch_time),
             )
+            # wandb
+            wandb.log(
+                {
+                    "val_dice_nroi": dice_tc,
+                    "val_dice_froi": dice_wt,
+                    "val_dice_edema": dice_et,
+                    "val_dice_avg": val_avg_acc,
+                }
+            )
+            start_time = time.time()
             dices_tc.append(dice_tc)
             dices_wt.append(dice_wt)
             dices_et.append(dice_et)
