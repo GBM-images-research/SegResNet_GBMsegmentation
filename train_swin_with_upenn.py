@@ -7,21 +7,22 @@ from monai.data import DataLoader, decollate_batch
 # from monai.inferers import sliding_window_inference
 # from monai.metrics import DiceMetric
 from monai.networks.nets import SegResNet
-from monai.transforms import (
-    Activations,
-    AsDiscrete,
-    Compose,
-    LoadImaged,
-    MapTransform,
-    NormalizeIntensityd,
-    Orientationd,
-    RandSpatialCropd,
-    CropForegroundd,
-    Spacingd,
-    EnsureTyped,
-    EnsureChannelFirstd,
-    CropForegroundd,
-)
+
+# from monai.transforms import (
+#     Activations,
+#     AsDiscrete,
+#     Compose,
+#     LoadImaged,
+#     MapTransform,
+#     NormalizeIntensityd,
+#     Orientationd,
+#     RandSpatialCropd,
+#     CropForegroundd,
+#     Spacingd,
+#     EnsureTyped,
+#     EnsureChannelFirstd,
+#     CropForegroundd,
+# )
 
 import torch
 import torch.nn.parallel
@@ -154,50 +155,51 @@ class ConvertToMultiChannel_with_infiltration(MapTransform):
                 voxel_size=voxel_size_cm,
             )
             result.append(F_roi)
-            # result.append(edema)
+            result.append(edema)
 
             d[key] = torch.stack(result, axis=0).float()
         return d
 
 
-# Transformaciones
-t_transform = Compose(
-    [
-        LoadImaged(keys=["image", "label"], allow_missing_keys=True),
-        EnsureChannelFirstd(keys="image"),
-        EnsureTyped(keys=["image", "label"]),
-        ConvertToMultiChannel_with_infiltration(keys="label"),
-        Orientationd(keys=["image", "label"], axcodes="RAS"),
-        Spacingd(
-            keys=["image", "label"],
-            pixdim=(1.0, 1.0, 1.0),
-            mode=("bilinear", "nearest"),
-        ),
-        NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
-        CropForegroundd(
-            keys=["image", "label"], source_key="label", margin=[112, 112, 72]
-        ),
-        RandSpatialCropd(
-            keys=["image", "label"], roi_size=[112, 112, 72], random_size=False
-        ),  # [224, 224, 144]
-    ]
-)
+# # Transformaciones
+# t_transform = Compose(
+#     [
+#         LoadImaged(keys=["image", "label"], allow_missing_keys=True),
+#         EnsureChannelFirstd(keys="image"),
+#         EnsureTyped(keys=["image", "label"]),
+#         ConvertToMultiChannel_with_infiltration(keys="label"),
+#         Orientationd(keys=["image", "label"], axcodes="RAS"),
+#         Spacingd(
+#             keys=["image", "label"],
+#             pixdim=(1.0, 1.0, 1.0),
+#             mode=("bilinear", "nearest"),
+#         ),
+#         NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
+#         CropForegroundd(
+#             keys=["image", "label"], source_key="label", margin=[112, 112, 72]
+#         ),
+#         RandSpatialCropd(
+#             keys=["image", "label"], roi_size=[112, 112, 72], random_size=False
+#         ),  # [224, 224, 144]
+#     ]
+# )
 
-v_transform = Compose(
-    [
-        LoadImaged(keys=["image", "label"], allow_missing_keys=True),
-        EnsureChannelFirstd(keys="image"),
-        EnsureTyped(keys=["image", "label"]),
-        ConvertToMultiChannel_with_infiltration(keys="label"),
-        Orientationd(keys=["image", "label"], axcodes="RAS"),
-        Spacingd(
-            keys=["image", "label"],
-            pixdim=(1.0, 1.0, 1.0),
-            mode=("bilinear", "nearest"),
-        ),
-        NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
-    ]
-)
+
+# v_transform = Compose(
+#     [
+#         LoadImaged(keys=["image", "label"], allow_missing_keys=True),
+#         EnsureChannelFirstd(keys="image"),
+#         EnsureTyped(keys=["image", "label"]),
+#         ConvertToMultiChannel_with_infiltration(keys="label"),
+#         Orientationd(keys=["image", "label"], axcodes="RAS"),
+#         Spacingd(
+#             keys=["image", "label"],
+#             pixdim=(1.0, 1.0, 1.0),
+#             mode=("bilinear", "nearest"),
+#         ),
+#         NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
+#     ]
+# )
 
 
 # Creando el modelo
@@ -218,9 +220,23 @@ config_train = SimpleNamespace(
     infer_overlap=0.5,
     max_epochs=100,
     val_every=10,
-    GT="nroi + froi",
+    GT="nroi + froi + edema",
 )
 
+#############################
+### Inicializar WandB
+#############################
+# Cargar la clave API desde una variable de entorno
+logging.info("Logging in WandB")
+api_key = os.environ.get("WANDB_API_KEY")
+# Iniciar sesión en W&B
+wandb.login(key=api_key)
+
+# create a wandb run
+run = wandb.init(project="Swin_UPENN", job_type="train", config=config_train)
+
+# we pass the config back from W&B
+config_train = wandb.config
 
 directory = "Dataset"
 root_dir = tempfile.mkdtemp() if directory is None else directory
@@ -286,6 +302,39 @@ infer_overlap = 0.5
 max_epochs = 100
 val_every = 10
 # train_loader, val_loader = get_loader(batch_size, data_dir, json_list, fold, roi)
+
+###############################
+#### Compose functions
+###############################
+train_transform = transforms.Compose(
+    [
+        transforms.LoadImaged(keys=["image", "label"]),
+        transforms.ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        transforms.CropForegroundd(
+            keys=["image", "label"],
+            source_key="image",
+            k_divisible=[roi[0], roi[1], roi[2]],
+        ),
+        transforms.RandSpatialCropd(
+            keys=["image", "label"],
+            roi_size=[roi[0], roi[1], roi[2]],
+            random_size=False,
+        ),
+        transforms.RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
+        transforms.RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=1),
+        transforms.RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=2),
+        transforms.NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
+        transforms.RandScaleIntensityd(keys="image", factors=0.1, prob=1.0),
+        transforms.RandShiftIntensityd(keys="image", offsets=0.1, prob=1.0),
+    ]
+)
+val_transform = transforms.Compose(
+    [
+        transforms.LoadImaged(keys=["image", "label"]),
+        transforms.ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        transforms.NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
+    ]
+)
 
 # Create Swin transformer
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
@@ -385,6 +434,14 @@ def val_epoch(
                 dice_et,
                 ", time {:.2f}s".format(time.time() - start_time),
             )
+            # wandb
+            wandb.log(
+                {
+                    "dice_nroi": dice_tc,
+                    "dice_froi": dice_wt,
+                    "dice_edema": dice_et,
+                }
+            )
             start_time = time.time()
 
     return run_acc.avg
@@ -425,6 +482,14 @@ def trainer(
             "Final training  {}/{}".format(epoch, max_epochs - 1),
             "loss: {:.4f}".format(train_loss),
             "time {:.2f}s".format(time.time() - epoch_time),
+        )
+        # wandb
+        wandb.log(
+            {
+                "loss": "{:.4f}".format(train_loss),
+                "lr": optimizer.param_groups[0]["lr"],
+                "epoch": epoch,
+            }
         )
 
         if (epoch + 1) % val_every == 0 or epoch == 0:
@@ -495,7 +560,7 @@ def main(config_train):
     dataset_path = "./Dataset/Dataset_30_casos/"
 
     train_set = CustomDataset(
-        dataset_path, section="train", transform=t_transform
+        dataset_path, section="train", transform=train_transform
     )  # t_transform
     train_loader = DataLoader(
         train_set, batch_size=batch_size, shuffle=False, num_workers=0
@@ -506,19 +571,13 @@ def main(config_train):
     print(im_t["label"].shape)
 
     val_set = CustomDataset(
-        dataset_path, section="valid", transform=v_transform
+        dataset_path, section="valid", transform=val_transform
     )  # v_transform
     val_loader = DataLoader(val_set, batch_size=1, shuffle=False, num_workers=0)
 
     # im_v = val_set[0]
     # print(im_v["image"].shape)
     # print(im_v["label"].shape)
-
-    # create a wandb run
-    run = wandb.init(project="Swin_UPENN", job_type="train", config=config_train)
-
-    # we pass the config back from W&B
-    config_train = wandb.config
 
     ##########################################################
     # Comenzar entrenamiento
