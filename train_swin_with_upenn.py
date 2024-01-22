@@ -488,7 +488,7 @@ def trainer(
         # wandb
         wandb.log(
             {
-                "loss": "{:.4f}".format(train_loss),
+                "loss": train_loss,
                 "lr": optimizer.param_groups[0]["lr"],
                 "epoch": epoch,
             }
