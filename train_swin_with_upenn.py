@@ -223,6 +223,16 @@ config_train = SimpleNamespace(
     GT="nroi + froi + edema",
 )
 
+### Hyperparameter
+roi = (112, 112, 72)  # (128, 128, 128)
+batch_size = 2
+sw_batch_size = 4
+fold = 1
+infer_overlap = 0.5
+max_epochs = 100
+val_every = 10
+# train_loader, val_loader = get_loader(batch_size, data_dir, json_list, fold, roi)
+
 #############################
 ### Inicializar WandB
 #############################
@@ -292,16 +302,6 @@ def save_checkpoint(model, epoch, filename="model.pt", best_acc=0, dir_add=root_
     torch.save(save_dict, filename)
     print("Saving checkpoint", filename)
 
-
-### Hyperparameter
-roi = (128, 128, 128)
-batch_size = 2
-sw_batch_size = 4
-fold = 1
-infer_overlap = 0.5
-max_epochs = 100
-val_every = 10
-# train_loader, val_loader = get_loader(batch_size, data_dir, json_list, fold, roi)
 
 ###############################
 #### Compose functions
