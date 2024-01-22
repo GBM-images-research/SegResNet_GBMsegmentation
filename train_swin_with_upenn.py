@@ -229,7 +229,7 @@ batch_size = 1
 sw_batch_size = 2
 fold = 1
 infer_overlap = 0.5
-max_epochs = 100
+max_epochs = 10
 val_every = 10
 # train_loader, val_loader = get_loader(batch_size, data_dir, json_list, fold, roi)
 
