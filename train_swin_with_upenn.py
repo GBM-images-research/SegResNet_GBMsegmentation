@@ -202,12 +202,12 @@ class ConvertToMultiChannel_with_infiltration(MapTransform):
 # )
 
 
-# Creando el modelo
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# DATA_DIR = Path('./data/')
-SAVE_DIR = "./Dataset"
-# SAVE_DIR.mkdir(exist_ok=True, parents=True)
-DEVICE = device
+# # Creando el modelo
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# # DATA_DIR = Path('./data/')
+# SAVE_DIR = "./Dataset"
+# # SAVE_DIR.mkdir(exist_ok=True, parents=True)
+# DEVICE = device
 
 #################################
 # HIPER PARAMETER CONFIGURATION #
