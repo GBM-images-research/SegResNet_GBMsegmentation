@@ -444,7 +444,7 @@ def val_epoch(
             #         "val_dice_edema": dice_et,
             #     }
             # )
-            # start_time = time.time()
+            start_time = time.time()
 
     return run_acc.avg
 
