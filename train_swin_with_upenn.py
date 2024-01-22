@@ -487,6 +487,10 @@ def trainer(
         )
         # wandb
         print("train_loss", train_loss.item(), type(train_loss.item()))
+        print(
+            "lr", optimizer.param_groups[0]["lr"], type(optimizer.param_groups[0]["lr"])
+        )
+
         wandb.log(
             {
                 "loss": train_loss.item(),
@@ -546,12 +550,15 @@ def trainer(
                     epoch,
                     best_acc=val_acc_max,
                 )
-                artifact_name = f"{wandb.run.id}_best_model"
-                at = wandb.Artifact(artifact_name, type="model")
-                at.add_file(os.path.join(directory, "model.pt"))
-                wandb.log_artifact(at, aliases=[f"epoch_{epoch}"])
+
             scheduler.step()
     print("Training Finished !, Best Accuracy: ", val_acc_max)
+    # Guardar artefacto en W&B
+    artifact_name = f"{wandb.run.id}_best_model"
+    at = wandb.Artifact(artifact_name, type="model")
+    at.add_file(os.path.join(directory, "model.pt"))
+    wandb.log_artifact(at, aliases=["final"])
+
     return (
         val_acc_max,
         dices_tc,
@@ -647,8 +654,6 @@ def main(config_train):
     plt.show()
 
     # finish W&B run
-
-    wandb.finish()
 
 
 if directory is None:
