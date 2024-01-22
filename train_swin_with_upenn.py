@@ -224,7 +224,7 @@ config_train = SimpleNamespace(
 )
 
 ### Hyperparameter
-roi = (112, 112, 72)  # (128, 128, 128)
+roi = (128, 128, 64)  # (128, 128, 128)
 batch_size = 2
 sw_batch_size = 4
 fold = 1
