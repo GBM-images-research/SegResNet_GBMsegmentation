@@ -155,7 +155,7 @@ class ConvertToMultiChannel_with_infiltration(MapTransform):
                 voxel_size=voxel_size_cm,
             )
             result.append(F_roi)
-            result.append(edema)
+            # result.append(edema) # comentar para eliminar edema de GT
 
             d[key] = torch.stack(result, axis=0).float()
         return d
@@ -231,7 +231,7 @@ config_train = SimpleNamespace(
     infer_overlap=infer_overlap,
     max_epochs=max_epochs,
     val_every=val_every,
-    GT="nroi + froi + edema",
+    GT="nroi + froi",  # modifica para eliminar edema
 )
 
 #############################
@@ -345,7 +345,7 @@ device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 model = SwinUNETR(
     img_size=roi,
     in_channels=11,
-    out_channels=3,
+    out_channels=2,  # mdificar con edema
     feature_size=48,
     drop_rate=0.0,
     attn_drop_rate=0.0,
@@ -425,7 +425,7 @@ def val_epoch(
             run_acc.update(acc.cpu().numpy(), n=not_nans.cpu().numpy())
             dice_tc = run_acc.avg[0]
             dice_wt = run_acc.avg[1]
-            dice_et = run_acc.avg[2]
+            # dice_et = run_acc.avg[2]
             print(
                 "Val {}/{} {}/{}".format(epoch, max_epochs, idx, len(loader)),
                 ", dice_tc:",
@@ -433,8 +433,8 @@ def val_epoch(
                 ", dice_wt:",
                 dice_wt,
                 ", dice_et:",
-                dice_et,
-                ", time {:.2f}s".format(time.time() - start_time),
+                # dice_et,
+                # ", time {:.2f}s".format(time.time() - start_time),
             )
             # # wandb
             # wandb.log(
@@ -514,7 +514,7 @@ def trainer(
             )
             dice_tc = val_acc[0]
             dice_wt = val_acc[1]
-            dice_et = val_acc[2]
+            # dice_et = val_acc[2]
             val_avg_acc = np.mean(val_acc)
             print(
                 "Final validation stats {}/{}".format(epoch, max_epochs - 1),
@@ -522,8 +522,8 @@ def trainer(
                 dice_tc,
                 ", dice_wt:",
                 dice_wt,
-                ", dice_et:",
-                dice_et,
+                # ", dice_et:",
+                # dice_et,
                 ", Dice_Avg:",
                 val_avg_acc,
                 ", time {:.2f}s".format(time.time() - epoch_time),
@@ -533,14 +533,14 @@ def trainer(
                 {
                     "val_dice_nroi": dice_tc,
                     "val_dice_froi": dice_wt,
-                    "val_dice_edema": dice_et,
+                    # "val_dice_edema": dice_et,
                     "val_dice_avg": val_avg_acc,
                 }
             )
             start_time = time.time()
             dices_tc.append(dice_tc)
             dices_wt.append(dice_wt)
-            dices_et.append(dice_et)
+            # dices_et.append(dice_et)
             dices_avg.append(val_avg_acc)
             if val_avg_acc > val_acc_max:
                 print("new best ({:.6f} --> {:.6f}). ".format(val_acc_max, val_avg_acc))
