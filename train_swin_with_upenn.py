@@ -311,7 +311,8 @@ def save_checkpoint(model, epoch, filename="model.pt", best_acc=0, dir_add=root_
 train_transform = transforms.Compose(
     [
         transforms.LoadImaged(keys=["image", "label"]),
-        transforms.ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        # transforms.ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        ConvertToMultiChannel_with_infiltration(keys="label"),
         transforms.CropForegroundd(
             keys=["image", "label"],
             source_key="image",
@@ -333,7 +334,8 @@ train_transform = transforms.Compose(
 val_transform = transforms.Compose(
     [
         transforms.LoadImaged(keys=["image", "label"]),
-        transforms.ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        # transforms.ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        ConvertToMultiChannel_with_infiltration(keys="label"),
         transforms.NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
     ]
 )
@@ -585,7 +587,7 @@ def main(config_train):
 
     im_t = train_set[0]
     # (im_t["image"].shape)
-    print(im_t["label"].shape)
+    print(im_t["image"].shape)
 
     val_set = CustomDataset(
         dataset_path, section="valid", transform=val_transform
@@ -595,7 +597,7 @@ def main(config_train):
     im_v = val_set[0]
     # (im_t["image"].shape)
     print(im_v["label"].shape)
-
+    # return
     # im_v = val_set[0]
     # print(im_v["image"].shape)
     # print(im_v["label"].shape)
