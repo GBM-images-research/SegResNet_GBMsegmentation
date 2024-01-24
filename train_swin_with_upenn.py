@@ -214,8 +214,8 @@ class ConvertToMultiChannel_with_infiltration(MapTransform):
 #################################
 
 ### Hyperparameter
-roi = (128, 128, 128)  # (128, 128, 128)
-batch_size = 1
+roi = (128, 128, 64)  # (128, 128, 128)
+batch_size = 2
 sw_batch_size = 2
 fold = 1
 infer_overlap = 0.5
