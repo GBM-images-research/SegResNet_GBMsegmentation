@@ -239,7 +239,7 @@ config_train = SimpleNamespace(
     infer_overlap=infer_overlap,
     max_epochs=max_epochs,
     val_every=val_every,
-    GT="nroi + froi",  # modifica para eliminar edema
+    GT="nroi + froi ver solo edema",  # modifica para eliminar edema
 )
 
 #############################
