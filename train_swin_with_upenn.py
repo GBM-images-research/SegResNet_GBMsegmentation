@@ -223,7 +223,7 @@ class masked(MapTransform):
 
 ### Hyperparameter
 roi = (128, 128, 64)  # (128, 128, 128)
-batch_size = 2
+batch_size = 1
 sw_batch_size = 2
 fold = 1
 infer_overlap = 0.5
