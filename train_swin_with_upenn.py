@@ -161,6 +161,14 @@ class ConvertToMultiChannel_with_infiltration(MapTransform):
         return d
 
 
+class masked(MapTransform):
+    def __call__(self, data_dict):
+        B = data_dict["label"] == 2
+        B = B.unsqueeze(0).expand(11, -1, -1, -1)
+        data_dict["image"] = data_dict["image"] * B
+        return data_dict
+
+
 # # Transformaciones
 # t_transform = Compose(
 #     [
@@ -312,6 +320,7 @@ train_transform = transforms.Compose(
     [
         transforms.LoadImaged(keys=["image", "label"]),
         # transforms.ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        masked(keys=["image", "label"]),
         ConvertToMultiChannel_with_infiltration(keys="label"),
         transforms.CropForegroundd(
             keys=["image", "label"],
@@ -335,6 +344,7 @@ val_transform = transforms.Compose(
     [
         transforms.LoadImaged(keys=["image", "label"]),
         # transforms.ConvertToMultiChannelBasedOnBratsClassesd(keys="label"),
+        masked(keys=["image", "label"]),
         ConvertToMultiChannel_with_infiltration(keys="label"),
         transforms.NormalizeIntensityd(keys="image", nonzero=True, channel_wise=True),
     ]
