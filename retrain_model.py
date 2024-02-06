@@ -169,7 +169,7 @@ def main():
     val_loader = DataLoader(val_ds, batch_size=1, shuffle=False, num_workers=4)
 
     # Select device gpu or cpu
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Device:", device)
 
     # Cargar la clave API desde una variable de entorno
@@ -190,7 +190,7 @@ def main():
         dropout_prob=0.2,
         # training hyperparameters
         max_epochs=args.epochs,
-        lrate=1e-4,
+        lrate=0.00000778360372489927,  # 1e-4,
         weight_decay=1e-5,
         batch_size=1,
         # Post
@@ -255,9 +255,10 @@ def main():
     optimizer = torch.optim.Adam(
         model.parameters(), config_train.lrate, weight_decay=config_train.weight_decay
     )
-    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, T_max=config_train.max_epochs
-    )
+    # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+    #    optimizer, T_max=config_train.max_epochs
+    # )
+    lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.5)
 
     dice_metric = DiceMetric(include_background=True, reduction="mean")
     dice_metric_batch = DiceMetric(include_background=True, reduction="mean_batch")
@@ -270,6 +271,11 @@ def main():
     scaler = torch.cuda.amp.GradScaler()
     # enable cuDNN benchmark
     torch.backends.cudnn.benchmark = True
+
+    # load best chekpoint
+    logging.info("Loading best Model")
+    checkpoint = torch.load(os.path.join("./Dataset", "best_metric_model.pth"))
+    model.load_state_dict(checkpoint)
 
     logging.info("Training Model")
     best_metric = 1
